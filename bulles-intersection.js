@@ -1,14 +1,14 @@
 var bulle = [];
 
 function setup() {
-  createCanvas(400, 400);
+  createCanvas(600, 500);
 	for (var i = 0; i < 10; i++) {
-		bulle[i] = new Bulle(random(300), random(300), random(10,30));
+		bulle[i] = new Bulle(random(width), random(height), random(10,40));
 	}
 }
 
 function draw() {
-  background(220);
+  background(0);
 	for (var i = 0; i < bulle.length; i++) {
 		for (var j = 0; j < bulle.length; j++) {
 			if (i !== j) {
@@ -17,7 +17,7 @@ function draw() {
 		}
 		bulle[i].move();
 	  bulle[i].display();
-		stroke(1)
+		stroke(255,255,255)
 		if (i < bulle.length - 1) {
 		  line(bulle[i].x, bulle[i].y, bulle[i+1].x, bulle[i + 1].y);
 		} else {
@@ -64,14 +64,14 @@ function Bulle(x, y, r) {
 		// X
 		this.x += this.dX * this.v;
 		
-		if (this.x > (400 - this.r)) {
-			this.x = (400 - this.r);
+		if (this.x > (width - this.r)) {
+			this.x = (width - this.r);
 		}
 		if (this.x < this.r) {
 			this.x = this.r;
 		}
 		
-		if (this.x >= (400 - this.r) || this.x <= this.r) {
+		if (this.x >= (width - this.r) || this.x <= this.r) {
 			this.dX *= -1;
 			this.updateColor()
 		}
@@ -79,13 +79,13 @@ function Bulle(x, y, r) {
 		// Y
 		this.y += this.dY * this.v;
 		
-		if (this.y > (400 - this.r)) {
-			this.y = (400 - this.r);
+		if (this.y > (height - this.r)) {
+			this.y = (height - this.r);
 		}
 		if (this.y < this.r) {
 			this.y = this.r;
 		}
-		if (this.y >= (400 - this.r) || this.y <= this.r) {
+		if (this.y >= (height - this.r) || this.y <= this.r) {
 			this.dY *= -1;
 			this.updateColor()
 		}
