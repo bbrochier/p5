@@ -41,20 +41,20 @@ function Bulle(x, y, r) {
 	}
 	this.intersects = function(obj) {
 		var di = dist(this.x, this.y, obj.x, obj.y);
-		if(di < (this.r + obj.r)) {
-			if(this.x < obj.x) {
+		if (di < (this.r + obj.r)) {
+			if (this.x < obj.x) {
 				this.dX = -1;
 				obj.dX = 1;
 			}
-			if(this.x > obj.x) {
+			if (this.x > obj.x) {
 				this.dX = 1;
 				obj.dX = -1;
 			}
-			if(this.y < obj.y) {
+			if (this.y < obj.y) {
 				this.dY = -1;
 				obj.dY = 1;
 			}
-			if(this.y > obj.y) {
+			if (this.y > obj.y) {
 				this.dY = 1;
 				obj.dY = -1;
 			}
