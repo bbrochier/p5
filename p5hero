@@ -88,6 +88,7 @@ function Note() {
 }
 
 function keyPressed() {
+  var hasMissed = 1
   if(notes.length > 0) {
     for (var i = 0; i < notes.length; i++) {
       //if ball inside the target
@@ -96,14 +97,16 @@ function keyPressed() {
           notes[i].dirX = -1;
           notes[i].dirY = 0;
           notes[i].y = height/4;
+          hasMissed = 0;
         }
         if(notes[i].key === 1 && keyCode === RIGHT_ARROW) {
           notes[i].dirX = 1;
           notes[i].dirY = 0;
           notes[i].y = height/4;
+          hasMissed = 0;
         }
       } else {
-        if (keyCode === RIGHT_ARROW || keyCode === LEFT_ARROW) {
+        if (hasMissed = 1) {
           missed += 1;
         }
       }
