@@ -81,14 +81,14 @@ function Note() {
     this.x += 20 * this.dirX;
     
     //clean unused balls
-    if (this.y < -this.r) {
+    if (this.y < -this.r || this.x < -this.r || this.x > (width + this.r)) {
       notes.splice(this.index, 1);
     }
   }
 }
 
 function keyPressed() {
-  var hasMissed = 1
+  var hasMissed = 1;
   if(notes.length > 0) {
     for (var i = 0; i < notes.length; i++) {
       //if ball inside the target
