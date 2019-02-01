@@ -1,4 +1,8 @@
-var fc = 0;
+var fc = 0; //frame counter
+var ballSpeed = 5; //nb px up/frame
+var ballRandMin = 10;
+var ballRandMax = 40;
+var ballFreqMax = 4; //balls per sec max
 var notes = [];
 
 function setup() {
@@ -16,8 +20,8 @@ function draw() {
   fill(0);
   ellipse(width/2, height/4, 60);
   
-  var fmodulo = int(random(20, 60));
-  if(frameCount - fc > 30 && frameCount % fmodulo === 0) {
+  var fmodulo = int(random(ballRandMin, ballRandMax));
+  if(frameCount - fc > (60 / ballFreqMax) && frameCount % fmodulo === 0) {
     fc = frameCount;
     notes.push(new Note());
   }
@@ -49,6 +53,7 @@ function Note() {
       this.txt = '→';
       this.color = [0, 0, 255];
     }
+    noStroke();
     fill(this.color[0], this.color[1], this.color[2]);
     ellipse(this.x, this.y, (this.r * 2));
     fill(255);
@@ -58,8 +63,8 @@ function Note() {
   }
   
   this.move = function() {
-    this.y -= 5;
-    if (this.y < 0) {
+    this.y -= ballSpeed;
+    if (this.y < -this.r) {
       notes.splice(this.index, 1);
     }
   }
