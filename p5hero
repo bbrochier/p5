@@ -1,8 +1,10 @@
-var fc = 0; //frame counter
-var ballSpeed = 5; //nb px up/frame
+var frameCounted = 0; //frame counter
+var frameKeyPressed = 0; //frame key was pressed
+var ballSpeed = 3; //nb px up/frame
 var ballRandMin = 10;
-var ballRandMax = 40;
-var ballFreqMax = 4; //balls per sec max
+var ballRandMax = 60;
+var ballFreqMax = 2; //balls per sec max
+var missed = 0;
 var notes = [];
 
 function setup() {
@@ -12,6 +14,11 @@ function setup() {
 function draw() {
 
   background(0);
+  
+  fill(255);
+  textAlign(LEFT, TOP);
+  textSize(16);
+  text('Missed: ' + missed, 20, 20);
 
   stroke(255);
   line(0, height/4, width, height/4);
@@ -21,8 +28,8 @@ function draw() {
   ellipse(width/2, height/4, 60);
   
   var fmodulo = int(random(ballRandMin, ballRandMax));
-  if(frameCount - fc > (60 / ballFreqMax) && frameCount % fmodulo === 0) {
-    fc = frameCount;
+  if(frameCount - frameCounted > (60 / ballFreqMax) && frameCount % fmodulo === 0) {
+    frameCounted = frameCount;
     notes.push(new Note());
   }
   
@@ -30,7 +37,9 @@ function draw() {
     for (var i = 0; i < notes.length; i++) {
       notes[i].index = i;
       notes[i].display();
+      notes[i].setColor();
       notes[i].move();
+      
     }
   }
 }
@@ -40,11 +49,12 @@ function Note() {
   this.r = 20;
   this.x = width / 2;
   this.y = height;
+  this.dirX = 0;
+  this.dirY = 1;
   this.key = int(random(0, 2));
   this.txt = '';
   this.color = [0, 0, 0];
-  
-  this.display = function() {
+  this.setColor = function() {
     if(this.key === 0) {
       this.txt = '←';
       this.color = [255, 0, 0];
@@ -53,6 +63,8 @@ function Note() {
       this.txt = '→';
       this.color = [0, 0, 255];
     }
+  }
+  this.display = function() {
     noStroke();
     fill(this.color[0], this.color[1], this.color[2]);
     ellipse(this.x, this.y, (this.r * 2));
@@ -63,9 +75,42 @@ function Note() {
   }
   
   this.move = function() {
-    this.y -= ballSpeed;
+    
+    //move the ball
+    this.y -= ballSpeed * this.dirY;
+    this.x += 20 * this.dirX;
+    
+    //clean unused balls
     if (this.y < -this.r) {
       notes.splice(this.index, 1);
     }
   }
+}
+
+function keyPressed() {
+  if(notes.length > 0) {
+    for (var i = 0; i < notes.length; i++) {
+      //if ball inside the target
+      if ((notes[i].y - notes[i].r) > (height/4 - 60) && (notes[i].y + notes[i].r) < (height/4 + 30)) {
+        if(notes[i].key === 0 && keyCode === LEFT_ARROW) {
+          notes[i].dirX = -1;
+          notes[i].dirY = 0;
+          notes[i].y = height/4;
+        }
+        if(notes[i].key === 1 && keyCode === RIGHT_ARROW) {
+          notes[i].dirX = 1;
+          notes[i].dirY = 0;
+          notes[i].y = height/4;
+        }
+      } else {
+        if (keyCode === RIGHT_ARROW || keyCode === LEFT_ARROW) {
+          missed += 1;
+        }
+      }
+    }
+  }
+}
+
+function keyReleased() {
+
 }
