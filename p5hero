@@ -6,27 +6,22 @@ function setup() {
 }
 
 function draw() {
-//==============
+
   background(0);
-  var px = 0;
-  var py = 0;
-  for(var i=0; i<=width; i+=10) {
-    fill(random(255), random(255), random(255));
-    //rect(i, 0, 10, random(0, height))
-  }
-//==============
 
   stroke(255);
   line(0, height/4, width, height/4);
   line(width/2, 0, width/2, height);
+  
   fill(0);
   ellipse(width/2, height/4, 60);
   
-  var frmod = int(random(20,60));
-  if(frameCount - fc > 30 && frameCount % frmod === 0) {
+  var fmodulo = int(random(20, 60));
+  if(frameCount - fc > 30 && frameCount % fmodulo === 0) {
     fc = frameCount;
     notes.push(new Note());
   }
+  
   if(notes.length > 0) {
     for (var i = 0; i < notes.length; i++) {
       notes[i].index = i;
@@ -41,9 +36,10 @@ function Note() {
   this.r = 20;
   this.x = width / 2;
   this.y = height;
-  this.key = int(random(0,2));
+  this.key = int(random(0, 2));
   this.txt = '';
   this.color = [0, 0, 0];
+  
   this.display = function() {
     if(this.key === 0) {
       this.txt = '←';
@@ -60,6 +56,7 @@ function Note() {
     textSize(30);
     text(this.txt, this.x, this.y);
   }
+  
   this.move = function() {
     this.y -= 5;
     if (this.y < 0) {
