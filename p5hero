@@ -1,10 +1,17 @@
 var frameCounted = 0; //frame counter
 var frameKeyPressed = 0; //frame key was pressed
-var ballSpeed = 3; //nb px up/frame
+
+var ballSpeed = 5; //nb px up/frame
 var ballRandMin = 10;
-var ballRandMax = 60;
-var ballFreqMax = 2; //balls per sec max
+var ballRandMax = 50;
+var ballFreqMax = 4; //balls per sec max
+
 var missed = 0;
+var accuracy = 0;
+var shot = 0;
+var out = 0;
+var totalNotes = 0
+
 var notes = [];
 
 function setup() {
@@ -16,9 +23,14 @@ function draw() {
   background(0);
   
   fill(255);
+  noStroke();
   textAlign(LEFT, TOP);
   textSize(16);
-  text('Missed: ' + missed, 20, 20);
+  text('Miss shot: ' + missed, 20, 20);
+  text('Shot: ' + shot, 20, 40);
+  accuracy = int(100*(shot - missed)/shot);
+  text('Accuracy: ' + accuracy + '%', 20, 60);
+  text('Out: ' + out + "/" + totalNotes, 20, 80);
 
   stroke(255);
   line(0, height/4, width, height/4);
@@ -28,18 +40,18 @@ function draw() {
   ellipse(width/2, height/4, 60);
   
   var fmodulo = int(random(ballRandMin, ballRandMax));
-  if(frameCount - frameCounted > (60 / ballFreqMax) && frameCount % fmodulo === 0) {
+  if(frameCount - frameCounted > (60 / ballFreqMax) && frameCount % fmodulo === 0 && totalNotes < 50) {
     frameCounted = frameCount;
     notes.push(new Note());
+    totalNotes += 1;
   }
   
-  if(notes.length > 0) {
+  if (notes.length > 0) {
     for (var i = 0; i < notes.length; i++) {
       notes[i].index = i;
       notes[i].display();
       notes[i].setColor();
       notes[i].move();
-      
     }
   }
 }
@@ -57,7 +69,7 @@ function Note() {
   this.setColor = function() {
     if(this.key === 0) {
       this.txt = '←';
-      this.color = [255, 0, 0];
+      this.color = [255, 0, 255];
     }
     if(this.key === 1) {
       this.txt = '→';
@@ -78,7 +90,12 @@ function Note() {
     
     //move the ball
     this.y -= ballSpeed * this.dirY;
-    this.x += 20 * this.dirX;
+    this.x += 30 * this.dirX;
+    
+    //add missed balls
+    if (this.y < -this.r) {
+      out += 1;
+    }
     
     //clean unused balls
     if (this.y < -this.r || this.x < -this.r || this.x > (width + this.r)) {
@@ -89,10 +106,11 @@ function Note() {
 
 function keyPressed() {
   var hasMissed = 1;
+  shot += 1;
   if(notes.length > 0) {
     for (var i = 0; i < notes.length; i++) {
-      //if ball inside the target
-      if ((notes[i].y - notes[i].r) > (height/4 - 60) && (notes[i].y + notes[i].r) < (height/4 + 30)) {
+      //if note inside the target
+      if (dist(notes[i].x, notes[i].y, width/2, height/4) < 30) {
         if(notes[i].key === 0 && keyCode === LEFT_ARROW) {
           notes[i].dirX = -1;
           notes[i].dirY = 0;
@@ -105,15 +123,11 @@ function keyPressed() {
           notes[i].y = height/4;
           hasMissed = 0;
         }
-      } else {
-        if (hasMissed = 1) {
-          missed += 1;
-        }
       }
     }
+    
+    if (hasMissed === 1) {
+      missed += 1;
+    }
   }
-}
-
-function keyReleased() {
-
 }
