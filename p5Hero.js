@@ -14,9 +14,10 @@ var frameCounted = 0;
 var hit = 0;
 var accuracy = 0;
 var shot = 0;
-var totalNotes = 50;
+var totalNotes = 50; //Number of notes per game
 var notesCount = 0;
 var lives = 3;
+var gameState = "play"; // title / play / score
 var notes = [];
 var target;
 
@@ -25,7 +26,7 @@ var target;
  * Run once at begining
  */
 function setup() {
-  createCanvas(375, 560);
+  createCanvas(374, 560);
 }
 
 /**
@@ -33,70 +34,79 @@ function setup() {
  * Run 60 times per second
  */
 function draw() {
+  clear();
   background(0);
   
-  //Information panel
-  stroke(255);
-  noFill();
-  rect(10, 10, 130, 70);
+  if (gameState === "play") {
+    //Information panel
+    strokeWeight(1);
+    stroke(255);
+    noFill();
+    rect(10, 10, 130, 70);
 
-  fill(255);
-  noStroke();
-  textAlign(LEFT, TOP);
-  textSize(16);
-  
-  //Lives
-  fill(255);
-  text("Lives:", 20, 20);
-  for (var i = 0; i < lives; i++) {
-    fill(255, 255, 0);
-    ellipse(75 + i * 20, 28, 15);
-  }
+    fill(255);
+    noStroke();
+    textAlign(LEFT, TOP);
+    textSize(16);
 
-  //Hits
-  fill(255);
-  text("Hits:", 20, 40);
-  fill(255, 0, 255);
-  text(hit + "/" + totalNotes, 56, 40);
+    //Lives
+    fill(255);
+    text("Lives:", 20, 20);
+    for (var i = 0; i < lives; i++) {
+      fill(255, 255, 0);
+      circle(75 + i * 20, 28, 7);
+    }
 
-  //Accuracy
-  accuracy = int(100 * hit / shot);
-  fill(255);
-  text("Accuracy:", 20, 60);
-  fill(0, 255, 0);
-  text(accuracy + "%", 95, 60);
+    //Hits
+    fill(255);
+    text("Hits:", 20, 40);
+    fill(255, 0, 255);
+    text(hit + "/" + notesCount, 56, 40);
 
-  //Target lines
-  stroke(255);
-  line(0, height / 4, width, height / 4);
-  line(width / 2, 0, width / 2, height);
-  
-  //Target circle
-  target = new Target();
-  target.display();
-  
-  //Create notes randomly
-  var fmodulo = int(random(noteRandMin, noteRandMax));
-  if (
-    frameCount - frameCounted > 60 / noteFreqMax &&
-    frameCount % fmodulo === 0 &&
-    notesCount < totalNotes
-  ) {
-    frameCounted = frameCount;
-    notes.push(new Note());
-    notesCount += 1;
-  }
+    //Accuracy
+    accuracy = int(100 * hit / shot);
+    fill(255);
+    text("Accuracy:", 20, 60);
+    fill(0, 255, 0);
+    text(accuracy + "%", 95, 60);
 
-  //Display & move notes
-  if (notes.length > 0) {
-    for (var i = 0; i < notes.length; i++) {
-      notes[i].index = i;
-      notes[i].move();
-      if (notes[i].intersects(target)){
-        target.fillColor = notes[i].color;
-        target.display();
+    //Draw target
+    target = new Target();
+    target.display();
+
+    //Create notes randomly
+    var fmodulo = int(random(noteRandMin, noteRandMax));
+    if (
+      frameCount - frameCounted > 60 / noteFreqMax &&
+      frameCount % fmodulo === 0 &&
+      notesCount < totalNotes
+    ) {
+      frameCounted = frameCount;
+      notes.push(new Note());
+      notesCount += 1;
+    }
+
+    //Display & move notes
+    if (notes.length > 0) {
+      for (var i = 0; i < notes.length; i++) {
+        notes[i].index = i;
+        notes[i].move();
+        if (notes[i].intersects(target)){
+          target.strColor = notes[i].color;
+          if (notes[i].key === 0) {
+            target.strColorL = notes[i].color;
+          }
+          if (notes[i].key === 1) {
+            target.strColorR = notes[i].color;
+          }
+          if (notes[i].key === 2) {
+            target.strColorL = notes[i].color;
+            target.strColorR = notes[i].color;
+          }
+          target.display();
+        }
+        notes[i].display();
       }
-      notes[i].display();
     }
   }
 }
@@ -139,7 +149,7 @@ function Note() {
     this.setColor();
     noStroke();
     fill(this.color[0], this.color[1], this.color[2]);
-    ellipse(this.x, this.y, this.r * 2);
+    circle(this.x, this.y, this.r);
     fill(255);
     textAlign(CENTER, CENTER);
     textSize(30);
@@ -179,10 +189,23 @@ function Target() {
   this.r = 30;
   this.fillColor = [0, 0, 0];
   this.strColor = [255, 255, 255];
+  this.strColorL = [255, 255, 255];
+  this.strColorR = [255, 255, 255];
   this.display = function() {
+    //vertical line
+    strokeWeight(3);
+    stroke(255);
+    line(width / 2, 0, width / 2, height);
+    //left horizontal line
+    stroke(this.strColorL[0], this.strColorL[1], this.strColorL[2]);
+    line(0, height / 4, width / 2, height / 4);
+    //right horizontal line
+    stroke(this.strColorR[0], this.strColorR[1], this.strColorR[2]);
+    line(width / 2, height / 4, width, height / 4);
+    //target circle
     stroke(this.strColor[0], this.strColor[1], this.strColor[2]);
     fill(this.fillColor[0], this.fillColor[1], this.fillColor[2]);
-    ellipse(this.x, this.y, this.r * 2);
+    circle(this.x, this.y, this.r);
   }
 }
 
