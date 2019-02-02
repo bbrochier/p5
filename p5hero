@@ -124,6 +124,10 @@ function Note() {
       this.txt = "↔";
       this.color = [0, 255, 0];
     }
+    if (this.key === 3) {
+      this.txt = "x";
+      this.color = [0, 255, 0];
+    }
   };
 
   this.display = function() {
