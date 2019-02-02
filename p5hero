@@ -14,7 +14,7 @@ var frameCounted = 0;
 var hit = 0;
 var accuracy = 0;
 var shot = 0;
-var totalNotes = 100;
+var totalNotes = 50;
 var notesCount = 0;
 var lives = 3;
 var notes = [];
@@ -37,7 +37,7 @@ function draw() {
   //Information panel
   stroke(255);
   noFill();
-  rect(10, 10, 125, 70);
+  rect(10, 10, 130, 70);
 
   fill(255);
   noStroke();
@@ -45,19 +45,25 @@ function draw() {
   textSize(16);
   
   //Lives
+  fill(255);
   text("Lives:", 20, 20);
   for (var i = 0; i < lives; i++) {
     fill(255, 255, 0);
-    ellipse(75 + i * 20, 32, 15);
+    ellipse(75 + i * 20, 28, 15);
   }
 
   //Hits
   fill(255);
-  text("Hits: " + hit, 20, 40);
+  text("Hits:", 20, 40);
+  fill(255, 0, 255);
+  text(hit + "/" + totalNotes, 56, 40);
 
   //Accuracy
   accuracy = int(100 * hit / shot);
-  text("Accuracy: " + accuracy + "%", 20, 60);
+  fill(255);
+  text("Accuracy:", 20, 60);
+  fill(0, 255, 0);
+  text(accuracy + "%", 95, 60);
 
   //Target lines
   stroke(255);
@@ -101,7 +107,7 @@ function Note() {
   this.y = height;
   this.dirX = 0;
   this.dirY = 1;
-  this.key = int(random(0, 2));
+  this.key = int(random(0, 3));
   this.txt = "";
   this.color = [0, 0, 0];
 
@@ -113,6 +119,10 @@ function Note() {
     if (this.key === 1) {
       this.txt = "→";
       this.color = [0, 0, 255];
+    }
+    if (this.key === 2) {
+      this.txt = "↔";
+      this.color = [0, 255, 0];
     }
   };
 
@@ -159,8 +169,21 @@ function keyPressed() {
           notes[i].y = height / 4;
           hit += 1;
         }
+        
         if (notes[i].key === 1 && keyCode === RIGHT_ARROW) {
           notes[i].dirX = 1;
+          notes[i].dirY = 0;
+          notes[i].y = height / 4;
+          hit += 1;
+        }
+        
+        if (notes[i].key === 2 && (keyCode === LEFT_ARROW || keyCode === RIGHT_ARROW)) {
+          if (keyCode === LEFT_ARROW) {
+            notes[i].dirX = -1; 
+          }
+          if (keyCode === RIGHT_ARROW) {
+            notes[i].dirX = 1; 
+          }
           notes[i].dirY = 0;
           notes[i].y = height / 4;
           hit += 1;
