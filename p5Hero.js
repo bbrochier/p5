@@ -22,9 +22,10 @@ var shot = 0;
 var totalNotes = 20; //Number of notes per game
 var notesCount = 0;
 var score = 0;
+var countDown = 3;
+var notes = [];
 
 var gameState = "title"; // title / play / score
-var notes = [];
 var target;
 
 var diags = [];
@@ -32,6 +33,8 @@ var diagSpeed = 0.5;
 var diagWidth = 20;
 var diagFade = 1;
 var diagColor = color1;
+
+var countDownFontSize = 40;
 
 /**
  * SETUP
@@ -83,11 +86,11 @@ function draw() {
     rectMode(CENTER);
     rect(width/2, height/3, 350, 100);
     
-    noStroke();
-    fill(255);
-    textSize(40);
+    strokeWeight(1);
+    noFill();
+    textSize(80);
     textAlign(CENTER, CENTER);
-    text("p5 Hero", width / 2, height/3);
+    text("P5 Hero", width / 2, height/3);
   }
   
   // SCORE state
@@ -128,43 +131,63 @@ function draw() {
     //Draw target
     target = new Target();
     target.display();
+    
+    //CountDown
+    if (countDown > 0) {
+      fill(0, 0, 0, 200);
+      noStroke();
+      rectMode(CORNER);
+      rect(0, 0, width, height);
+      
+      textSize(countDownFontSize);
+      countDownFontSize += 1.1;
+      fill(255);
+      stroke(0);
+      strokeWeight(6);
+      text(countDown, width / 2, height / 4);
+      
+      if (frameCount % 60 === 0) {
+        countDownFontSize = 40;
+        countDown --;
+      }
+    } else {
+      //Create notes randomly
+      var fmodulo = int(random(noteRandMin, noteRandMax));
+      if (
+        frameCount - frameCounted > 60 / noteFreqMax &&
+        frameCount % fmodulo === 0 &&
+        notesCount < totalNotes
+      ) {
+        frameCounted = frameCount;
+        notes.push(new Note());
+        notesCount += 1;
+      }
 
-    //Create notes randomly
-    var fmodulo = int(random(noteRandMin, noteRandMax));
-    if (
-      frameCount - frameCounted > 60 / noteFreqMax &&
-      frameCount % fmodulo === 0 &&
-      notesCount < totalNotes
-    ) {
-      frameCounted = frameCount;
-      notes.push(new Note());
-      notesCount += 1;
-    }
-
-    //Display & move notes
-    if (notes.length > 0) {
-      for (var i = 0; i < notes.length; i++) {
-        notes[i].index = i;
-        notes[i].move();
-        if (notes[i]) {
-          if (notes[i].intersects(target)){
-            target.strColor = notes[i].color;
-            if (notes[i].key === 0) {
-              target.strColorL = notes[i].color;
-              target.strColorB = notes[i].color;
+      //Display & move notes
+      if (notes.length > 0) {
+        for (var i = 0; i < notes.length; i++) {
+          notes[i].index = i;
+          notes[i].move();
+          if (notes[i]) {
+            if (notes[i].intersects(target)){
+              target.strColor = notes[i].color;
+              if (notes[i].key === 0) {
+                target.strColorL = notes[i].color;
+                target.strColorB = notes[i].color;
+              }
+              if (notes[i].key === 1) {
+                target.strColorR = notes[i].color;
+                target.strColorB = notes[i].color;
+              }
+              if (notes[i].key === 2) {
+                target.strColorL = notes[i].color;
+                target.strColorR = notes[i].color;
+                target.strColorB = notes[i].color;
+              }
+              target.display();
             }
-            if (notes[i].key === 1) {
-              target.strColorR = notes[i].color;
-              target.strColorB = notes[i].color;
-            }
-            if (notes[i].key === 2) {
-              target.strColorL = notes[i].color;
-              target.strColorR = notes[i].color;
-              target.strColorB = notes[i].color;
-            }
-            target.display();
+            notes[i].display();
           }
-          notes[i].display();
         }
       }
     }
@@ -367,14 +390,14 @@ function keyPressed() {
     }
   }
   
-  if (gameState == "title" || gameState == "score") {
-    if (keyCode === 32) {
-      frameCounted = 0;
-      hit = 0;
-      accuracy = 0;
-      shot = 0;
-      notesCount = 0;
-      gameState = "play";
-    }
+  if (keyCode === 32) { //SPACE
+    frameCounted = 0;
+    hit = 0;
+    accuracy = 0;
+    shot = 0;
+    notesCount = 0;
+    countDown = 3;
+    notes = [];
+    gameState = "play";
   }
 }
