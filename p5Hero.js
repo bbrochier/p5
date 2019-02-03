@@ -152,21 +152,15 @@ function draw() {
             if (notes[i].key === 0) {
               target.strColorL = notes[i].color;
               target.strColorB = notes[i].color;
-              //updateDiagColor(notes[i].color);
-              //diagColor = notes[i].color;
             }
             if (notes[i].key === 1) {
               target.strColorR = notes[i].color;
               target.strColorB = notes[i].color;
-              //updateDiagColor(notes[i].color);
-              //diagColor = notes[i].color;
             }
             if (notes[i].key === 2) {
               target.strColorL = notes[i].color;
               target.strColorR = notes[i].color;
               target.strColorB = notes[i].color;
-              //updateDiagColor(notes[i].color);
-              //diagColor = notes[i].color;
             }
             target.display();
           }
