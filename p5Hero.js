@@ -10,7 +10,7 @@ var color1 = [255, 0, 255]; //magenta
 var color2 = [0, 0, 255]; //blue
 var color3 = [0, 255, 0]; //green
 
-var noteSpeed = 5; //Number of px up per frame
+var noteSpeed = 6; //Number of px up per frame
 var noteRandMin = 10;
 var noteRandMax = 50;
 var noteFreqMax = 4; //Notes per sec max
@@ -391,13 +391,22 @@ function keyPressed() {
   }
   
   if (keyCode === 32) { //SPACE
-    frameCounted = 0;
-    hit = 0;
-    accuracy = 0;
-    shot = 0;
-    notesCount = 0;
-    countDown = 3;
-    notes = [];
+    resetGame();
     gameState = "play";
   }
+  
+  if (keyCode === 83) { //S
+    resetGame();
+    gameState = "title";
+  }
+}
+
+function resetGame() {
+  frameCounted = 0;
+  hit = 0;
+  accuracy = 0;
+  shot = 0;
+  notesCount = 0;
+  countDown = 3;
+  notes = [];
 }
