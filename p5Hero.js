@@ -1,40 +1,41 @@
 /**
  * --------------------------------------------------------------------------
- * p5Hero
+ * P5Hero
  * A Guitare Hero style game make with p5.js
+ * https://codepen.io/bbrochier/pen/davZmK
  * --------------------------------------------------------------------------
  */
-var colorBG = [80, 80, 80] //dark gray
-var color0 = [255, 255, 255] //white
-var color1 = [255, 0, 255]; //magenta
-var color2 = [0, 0, 255]; //blue
-var color3 = [0, 255, 0]; //green
+const colorBG = [80, 80, 80] //dark gray
+const color0 = [255, 255, 255] //white
+const color1 = [255, 0, 255]; //magenta
+const color2 = [0, 0, 255]; //blue
+const color3 = [0, 255, 0]; //green
 
-var noteSpeed = 6; //Number of px up per frame
-var noteRandMin = 10;
-var noteRandMax = 50;
-var noteFreqMax = 4; //Notes per sec max
+const noteSpeed = 6; //Number of px up per frame
+const noteRandMin = 10;
+const noteRandMax = 50;
+const noteFreqMax = 4; //Notes per sec max
 
+const totalNotes = 20; //Number of notes per game
 var frameCounted = 0;
-var hit = 0;
+var hit = 0; //Number of notes deflected
 var accuracy = 0;
-var shot = 0;
-var totalNotes = 20; //Number of notes per game
+var shot = 0; //Number of keypressed
 var notesCount = 0;
 var score = 0;
-var countDown = 3;
 var notes = [];
 
 var gameState = "title"; // title / play / score
 var target;
 
+var countDown = 3;
+var countDownFontSize = 35;
+
 var diags = [];
 var diagSpeed = 0.5;
 var diagWidth = 20;
 var diagFade = 1;
-var diagColor = color1;
-
-var countDownFontSize = 40;
+var diagColor = color1; //start color for diagonal
 
 /**
  * SETUP
@@ -44,9 +45,9 @@ function setup() {
   createCanvas(400, 560);
   
   //Fill background with diagonals at start
-  for (var i = -20; i < 2*width; i+=diagWidth) {
+  for (let i = -20; i < (2 * width); i += diagWidth) {
     diags.push(new Diag(i, diagFade));
-    diagFade = - diagFade;
+    diagFade = -diagFade;
   }
 }
 
@@ -55,16 +56,38 @@ function setup() {
  * Run 60 times per second
  */
 function draw() {
-  clear();
-  background(0);
+  clear(); //clear screen
+  drawBackground();
   
+  // Game State Machine
+  switch (gameState){
+    case "title":
+      drawTitle();
+      break;
+    case "score":
+      drawScore();
+      break;
+    case "play":
+      drawPlay();
+      break;
+  }
+}
+
+/**
+ * DRAW BACKGROUND
+ * Draw the game background
+ * Called 60 times/s in the draw() function
+ */
+function drawBackground() {
+  background(0);
   // Draw background
   if (frameCount % (diagWidth / diagSpeed) === 0) {
     diags.push(new Diag(-diagWidth, diagFade));
     diagFade = - diagFade;
   }
+  
   //Move diagonales
-  for (var i = 0; i < diags.length; i++) {
+  for (let i = 0; i < diags.length; i++) {
     diags[i].move();
     diags[i].display();
     //Remove unused diagonales
@@ -72,122 +95,159 @@ function draw() {
       diags.splice(i, 1);
     }
   }
-  
-  // TITLE state
-  if (gameState == "title") {
-    setBgMulticolor();
+}
+
+/**
+ * DRAW TITLE
+ * Draw the title state
+ * Called 60 times/s in the draw() function
+ */
+function drawTitle() {
+  setBgMulticolor();
+
+  textSize(20);
+  text("PRESS SPACE", width / 2, height - 100)
+
+  strokeWeight(1);
+  stroke(255);
+  fill(0,0,0,100);
+  rectMode(CENTER);
+  rect(width/2, height/3, 350, 100);
+
+  noStroke();
+  fill(255);
+  textSize(80);
+  textAlign(CENTER, CENTER);
+  textFont("Coiny");
+  text("P5 Hero", width / 2, (height/3) + 8);
+  textFont("Arial");
+
+  let note1 = new Note();
+  note1.key = 0;
+  note1.y = width / 2 + 100;
+  note1.x = width / 4;
+  note1.display();
+
+  let note2 = new Note();
+  note2.key = 2;
+  note2.y = width / 2 + 100;
+  note2.x = width / 2;
+  note2.display();
+
+  let note3 = new Note();
+  note3.key = 1;
+  note3.y = width / 2 + 100;
+  note3.x = width / 2 + width / 4;
+  note3.display();
+}
+
+/**
+ * DRAW SCORE
+ * Draw the score state
+ * Called 60 times/s in the draw() function
+ */
+function drawScore() {
+  setBgMulticolor();
     
-    textSize(20);
-    text("PRESS SPACE", width / 2, height - 100)
-    
-    strokeWeight(1);
-    stroke(255);
-    fill(0,0,0,100);
-    rectMode(CENTER);
-    rect(width/2, height/3, 350, 100);
-    
-    strokeWeight(1);
-    noFill();
-    textSize(80);
-    textAlign(CENTER, CENTER);
-    text("P5 Hero", width / 2, height/3);
-  }
-  
-  // SCORE state
-  if (gameState == "score") {
-    setBgMulticolor();
-    
+  noStroke();
+  textSize(20);
+  text("PRESS SPACE", width / 2, height - 100)
+
+  fill(255);
+  textAlign(CENTER);
+  textSize(16);
+
+  //Hits
+  fill(255);
+  text("Hits: " + hit + "/" + notesCount, width / 2, 20);
+
+  //Accuracy
+  accuracy = int(100 * hit / shot);
+  text("Accuracy: " + accuracy + "%", width / 2, 40);
+
+  //Score
+  score = 1000 * (((100 * hit) / totalNotes) + accuracy) / 200;
+  fill(255);
+  textSize(40);
+  textAlign(CENTER, CENTER);
+  textFont("Coiny");
+  text("Score", width / 2, height/3);
+  text(score, width / 2, height/3 + 40);
+  textFont("Arial");
+}
+
+/**
+ * DRAW PLAY
+ * Draw the play state
+ * Called 60 times/s in the draw() function
+ */
+function drawPlay() {
+  //Set background color
+  updateDiagColor(colorBG);
+  diagColor = colorBG;
+
+  //Draw target
+  target = new Target();
+  target.display();
+
+  //CountDown
+  if (countDown > 0) {
+    fill(0, 0, 0, 200);
     noStroke();
-    textSize(22);
-    text("PRESS SPACE", width / 2, height - 100)
+    rectMode(CORNER);
+    rect(0, 0, width, height);
 
+    textSize(countDownFontSize);
+    countDownFontSize += 1.1;
     fill(255);
-    textAlign(CENTER);
-    textSize(16);
+    stroke(0);
+    strokeWeight(6);
+    text(countDown, (width / 2) - 2, (height / 4) + 5);
 
-    //Hits
-    fill(255);
-    text("Hits: " + hit + "/" + notesCount, width / 2, 20);
+    if (frameCount % 60 === 0) {
+      countDownFontSize = 35;
+      countDown --;
+    }
+  } else {
+    //Create notes randomly
+    var fmodulo = int(random(noteRandMin, noteRandMax));
+    if (
+      frameCount - frameCounted > 60 / noteFreqMax &&
+      frameCount % fmodulo === 0 &&
+      notesCount < totalNotes
+    ) {
+      frameCounted = frameCount;
+      notes.push(new Note());
+      notesCount += 1;
+    }
 
-    //Accuracy
-    accuracy = int(100 * hit / shot);
-    text("Accuracy: " + accuracy + "%", width / 2, 40);
-    
-    //Score
-    score = 1000 * (((100 * hit) / totalNotes) + accuracy) / 200;
-    fill(255);
-    textSize(40);
-    textAlign(CENTER, CENTER);
-    text("Score", width / 2, height/3);
-    text(score, width / 2, height/3 + 40);
-  }
-  
-  // PLAY state
-  if (gameState == "play") {
-    //Set background color
-    updateDiagColor(colorBG);
-    diagColor = colorBG;
-    
-    //Draw target
-    target = new Target();
-    target.display();
-    
-    //CountDown
-    if (countDown > 0) {
-      fill(0, 0, 0, 200);
-      noStroke();
-      rectMode(CORNER);
-      rect(0, 0, width, height);
-      
-      textSize(countDownFontSize);
-      countDownFontSize += 1.1;
-      fill(255);
-      stroke(0);
-      strokeWeight(6);
-      text(countDown, width / 2, height / 4);
-      
-      if (frameCount % 60 === 0) {
-        countDownFontSize = 40;
-        countDown --;
-      }
-    } else {
-      //Create notes randomly
-      var fmodulo = int(random(noteRandMin, noteRandMax));
-      if (
-        frameCount - frameCounted > 60 / noteFreqMax &&
-        frameCount % fmodulo === 0 &&
-        notesCount < totalNotes
-      ) {
-        frameCounted = frameCount;
-        notes.push(new Note());
-        notesCount += 1;
-      }
-
-      //Display & move notes
-      if (notes.length > 0) {
-        for (var i = 0; i < notes.length; i++) {
-          notes[i].index = i;
-          notes[i].move();
-          if (notes[i]) {
-            if (notes[i].intersects(target)){
-              target.strColor = notes[i].color;
-              if (notes[i].key === 0) {
-                target.strColorL = notes[i].color;
-                target.strColorB = notes[i].color;
-              }
-              if (notes[i].key === 1) {
-                target.strColorR = notes[i].color;
-                target.strColorB = notes[i].color;
-              }
-              if (notes[i].key === 2) {
-                target.strColorL = notes[i].color;
-                target.strColorR = notes[i].color;
-                target.strColorB = notes[i].color;
-              }
-              target.display();
+    //Display & move notes
+    if (notes.length > 0) {
+      for (let i = 0; i < notes.length; i++) {
+        notes[i].index = i;
+        notes[i].move();
+        if (notes[i]) {
+          if (notes[i].intersects(target)){
+            target.strColor = notes[i].color;
+            let targetFillColor = color(notes[i].color);
+            targetFillColor.setAlpha(120);
+            target.fillColor = targetFillColor;
+            if (notes[i].key === 0) {
+              target.strColorL = notes[i].color;
+              target.strColorB = notes[i].color;
             }
-            notes[i].display();
+            if (notes[i].key === 1) {
+              target.strColorR = notes[i].color;
+              target.strColorB = notes[i].color;
+            }
+            if (notes[i].key === 2) {
+              target.strColorL = notes[i].color;
+              target.strColorR = notes[i].color;
+              target.strColorB = notes[i].color;
+            }
+            target.display();
           }
+          notes[i].display();
         }
       }
     }
@@ -225,10 +285,12 @@ function Note() {
 
   this.display = function() {
     this.setColor();
-    noStroke();
+    stroke(255);
+    strokeWeight(2);
     fill(this.color[0], this.color[1], this.color[2]);
     circle(this.x, this.y, this.r);
     fill(255);
+    noStroke();
     textAlign(CENTER, CENTER);
     textSize(30);
     text(this.txt, this.x, this.y);
@@ -263,7 +325,7 @@ function Target() {
   this.x = width / 2;
   this.y = height / 4;
   this.r = 30;
-  this.fillColor = [];
+  this.fillColor = [0,0,0];
   this.strColor = color0;
   this.strColorL = color0;
   this.strColorR = color0;
@@ -285,6 +347,7 @@ function Target() {
     //target circle
     stroke(this.strColor[0], this.strColor[1], this.strColor[2]);
     noFill();
+    fill(this.fillColor);
     circle(this.x, this.y, this.r);
   }
 }
@@ -324,14 +387,14 @@ function Diag(x, fade) {
 }
 
 function updateDiagColor(color) {
-  for (var i = 0; i < diags.length; i++) {
+  for (let i = 0; i < diags.length; i++) {
     diags[i].color = color;
   }
 }
 
 function setBgMulticolor() {
   if (frameCount % 60 === 0) {
-    var rdm = int(random(1,4));
+    let rdm = int(random(1,4));
     switch (rdm){
       case 1:
         updateDiagColor(color1);
@@ -357,7 +420,7 @@ function keyPressed() {
   if (gameState == "play") {
     shot += 1;
     if (notes.length > 0) {
-      for (var i = 0; i < notes.length; i++) {
+      for (let i = 0; i < notes.length; i++) {
         //Test if a note is inside the target when key is pressed
         if (dist(notes[i].x, notes[i].y, target.x, target.y) < target.r) {
           if (notes[i].key === 0 && keyCode === LEFT_ARROW) {
@@ -401,6 +464,10 @@ function keyPressed() {
   }
 }
 
+/**
+ * RESETGAME
+ * reset all game variable to default value
+ */
 function resetGame() {
   frameCounted = 0;
   hit = 0;
