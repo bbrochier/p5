@@ -24,7 +24,6 @@ const colorsSize = Object.keys(colors).length;
 var score = 0;
 var cardCPU;
 var cardPlayer;
-var keyDown = 0;
 
 function setup() {
   createCanvas(380, 567);
@@ -61,10 +60,6 @@ function draw() {
   rectMode(CORNER);
   rect(0, 30, width, height / 2 - 30);
 
-  //cards
-  cardPlayer.drawCard();
-  cardCPU.drawCard();
-
   //arrows
   if (keyIsDown(LEFT_ARROW)) {
     keyDownLeft = 1;
@@ -92,6 +87,10 @@ function draw() {
   fill(255);
   textAlign(LEFT);
   text("SCORE: " + score, 10, 17);
+
+  //cards
+  cardPlayer.drawCard();
+  cardCPU.drawCard();
 }
 
 class Arrow {
@@ -167,9 +166,7 @@ function pickCard(x, y, t) {
  * run everytime a key is pressed
  */
 function keyPressed() {
-  if (keyCode === LEFT_ARROW || keyCode === RIGHT_ARROW) {
-    keyDown = 1;
-    if (
+  if (
       (checkMatch(cardPlayer, cardCPU) && keyCode === RIGHT_ARROW) ||
       (!checkMatch(cardPlayer, cardCPU) && keyCode === LEFT_ARROW)
     ) {
@@ -178,7 +175,31 @@ function keyPressed() {
       score -= 2;
     }
 
+  cardCPU = pickCard(width / 2, height / 4, "cpu");
+  cardPlayer = pickCard(width / 2, height / 2 + height / 4, "player");
+}
+
+
+function touchStarted() {
+  cardPlayer.x = touches[0].x;
+  cardPlayer.y = touches[0].y;
+}
+
+function touchMoved() {
+  cardPlayer.x = touches[0].x;
+  cardPlayer.y = touches[0].y;
+}
+
+function touchEnded() {
+  if (
+      (checkMatch(cardPlayer, cardCPU) && cardPlayer.x > width/2) ||
+      (!checkMatch(cardPlayer, cardCPU) && cardPlayer.x < width/2)
+    ) {
+      score += 1;
+    } else {
+      score -= 2;
+    }
+
     cardCPU = pickCard(width / 2, height / 4, "cpu");
     cardPlayer = pickCard(width / 2, height / 2 + height / 4, "player");
-  }
 }
