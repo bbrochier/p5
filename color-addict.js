@@ -1,7 +1,6 @@
 //TODO
-// game state
+// game stats
 // - title
-// - score
 // timer
 // high score
 // game feel
@@ -21,6 +20,7 @@ const colors = {
 };
 const colorsSize = Object.keys(colors).length;
 
+var shake = 0;
 var score = 0;
 var cardCPU;
 var cardPlayer;
@@ -51,7 +51,7 @@ function setup() {
 
 function draw() {
   clear();
-
+  doShake();
   //board
   background(0);
   stroke(255);
@@ -167,18 +167,18 @@ function pickCard(x, y, t) {
  */
 function keyPressed() {
   if (
-      (checkMatch(cardPlayer, cardCPU) && keyCode === RIGHT_ARROW) ||
-      (!checkMatch(cardPlayer, cardCPU) && keyCode === LEFT_ARROW)
-    ) {
-      score += 1;
-    } else {
-      score -= 2;
-    }
+    (checkMatch(cardPlayer, cardCPU) && keyCode === RIGHT_ARROW) ||
+    (!checkMatch(cardPlayer, cardCPU) && keyCode === LEFT_ARROW)
+  ) {
+    score += 1;
+  } else {
+    shake += 1;
+    score -= 2;
+  }
 
   cardCPU = pickCard(width / 2, height / 4, "cpu");
   cardPlayer = pickCard(width / 2, height / 2 + height / 4, "player");
 }
-
 
 function touchStarted() {
   cardPlayer.x = touches[0].x;
@@ -192,14 +192,29 @@ function touchMoved() {
 
 function touchEnded() {
   if (
-      (checkMatch(cardPlayer, cardCPU) && cardPlayer.x > width/2) ||
-      (!checkMatch(cardPlayer, cardCPU) && cardPlayer.x < width/2)
-    ) {
-      score += 1;
-    } else {
-      score -= 2;
-    }
+    (checkMatch(cardPlayer, cardCPU) && cardPlayer.x > width / 2) ||
+    (!checkMatch(cardPlayer, cardCPU) && cardPlayer.x < width / 2)
+  ) {
+    score += 1;
+  } else {
+    score -= 2;
+    shake += 1;
+  }
 
-    cardCPU = pickCard(width / 2, height / 4, "cpu");
-    cardPlayer = pickCard(width / 2, height / 2 + height / 4, "player");
+  cardCPU = pickCard(width / 2, height / 4, "cpu");
+  cardPlayer = pickCard(width / 2, height / 2 + height / 4, "player");
+}
+
+function doShake() {
+  let shakeX = random(-16, 16);
+  let shakeY = random(-16, 16);
+
+  shakeX *= shake;
+  shakeY *= shake;
+
+  translate(shakeX, shakeY);
+  shake = shake * 0.95;
+  if (shake < 0.05) {
+    shake = 0;
+  }
 }
