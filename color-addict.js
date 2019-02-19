@@ -1,7 +1,4 @@
 //TODO
-// game stats
-// - title
-// timer
 // high score
 // game feel
 
@@ -12,7 +9,6 @@ const colors = {
   JAUNE: [255, 215, 0],
   ORANGE: [255, 120, 0],
   NOIR: [0, 0, 0],
-  GRIS: [0, 0, 255],
   MAUVE: [147, 112, 216],
   GRIS: [150, 150, 150],
   ROSE: [255, 105, 180],
@@ -22,15 +18,24 @@ const colorsSize = Object.keys(colors).length;
 
 var shake = 0;
 var score = 0;
+const timerInit = 20;
+var timer = timerInit;
 var cardCPU;
 var cardPlayer;
+var gameState = "title";
 
+/**
+ * SETUP
+ * run once at start
+ */
 function setup() {
   createCanvas(380, 567);
 
+  // init cards
   cardCPU = pickCard(width / 2, height / 4 + 15, "cpu");
   cardPlayer = pickCard(width / 2, height / 2 + height / 4, "player");
 
+  // init arrows
   arrowLeft = new Arrow(
     20,
     height / 2 + height / 4,
@@ -49,50 +54,104 @@ function setup() {
   );
 }
 
+/**
+ * DRAW
+ * run 60 times/second
+ */
 function draw() {
   clear();
-  doShake();
-  //board
   background(0);
-  stroke(255);
-  line(width / 2, 30, width / 2, height);
-  fill(255);
-  rectMode(CORNER);
-  rect(0, 30, width, height / 2 - 30);
 
-  //arrows
-  if (keyIsDown(LEFT_ARROW)) {
-    keyDownLeft = 1;
-  } else {
-    keyDownLeft = 0;
+  // PLAY
+  if (gameState === "play") {
+    doShake();
+
+    //board
+    stroke(255);
+    line(width / 2, 30, width / 2, height);
+    fill(255);
+    rectMode(CORNER);
+    rect(0, 30, width, height / 2 - 30);
+
+    //arrows
+    if (keyIsDown(LEFT_ARROW)) {
+      keyDownLeft = 1;
+    } else {
+      keyDownLeft = 0;
+    }
+    if (keyIsDown(RIGHT_ARROW)) {
+      keyDownRight = 1;
+    } else {
+      keyDownRight = 0;
+    }
+    arrowLeft.drawArrow(keyDownLeft);
+    arrowRight.drawArrow(keyDownRight);
+
+    //oui/non
+    textAlign(CENTER, CENTER);
+    textStyle(NORMAL);
+    textSize(14);
+    fill(255);
+    noStroke();
+    text("NON", 30, height - 20);
+    text("OUI", width - 30, height - 20);
+
+    //score
+    fill(255);
+    textAlign(LEFT);
+    text("SCORE: " + score, 10, 17);
+
+    //timer
+    if (frameCount % 60 === 0) {
+      timer -= 1;
+    }
+    if (timer <= 0) {
+      gameState = "score";
+    }
+    fill(255);
+    textAlign(RIGHT);
+    timerDisplay = timer;
+    if (timer < 10) {
+      timerDisplay = "0" + timer;
+    }
+    text("00:" + timerDisplay, width - 10, 17);
+
+    //cards
+    cardPlayer.drawCard();
+    cardCPU.drawCard();
   }
-  if (keyIsDown(RIGHT_ARROW)) {
-    keyDownRight = 1;
-  } else {
-    keyDownRight = 0;
+
+  // TITLE
+  if (gameState === "title") {
+    textAlign(CENTER, CENTER);
+    textStyle(BOLD);
+    textSize(34);
+    fill(255);
+    noStroke();
+    text("Color addict trainer", width / 2, height / 2);
+    textStyle(NORMAL);
+    textSize(20);
+    text("PRESS SPACE", width / 2, height / 2 + height / 4);
   }
-  arrowLeft.drawArrow(keyDownLeft);
-  arrowRight.drawArrow(keyDownRight);
 
-  //oui/non
-  textAlign(CENTER, CENTER);
-  textStyle(NORMAL);
-  textSize(14);
-  fill(255);
-  noStroke();
-  text("NON", 30, height - 20);
-  text("OUI", width - 30, height - 20);
-
-  //score
-  fill(255);
-  textAlign(LEFT);
-  text("SCORE: " + score, 10, 17);
-
-  //cards
-  cardPlayer.drawCard();
-  cardCPU.drawCard();
+  // SCORE
+  if (gameState === "score") {
+    textAlign(CENTER, CENTER);
+    textStyle(BOLD);
+    textSize(34);
+    fill(255);
+    noStroke();
+    text("SCORE : " + score, width / 2, height / 2);
+    textStyle(NORMAL);
+    textSize(20);
+    text("PRESS SPACE", width / 2, height / 2 + height / 4);
+  }
 }
 
+/**
+ * ARROW
+ * class
+ */
 class Arrow {
   constructor(x1, y1, x2, y2, x3, y3) {
     this.x1 = x1;
@@ -113,6 +172,10 @@ class Arrow {
   }
 }
 
+/**
+ * CARD
+ * card class
+ */
 class Card {
   constructor(txt, color, x, y, t) {
     this.txt = txt;
@@ -137,6 +200,10 @@ class Card {
   }
 }
 
+/**
+ * CHECKMATCH
+ * check if there is a match between 2 cards
+ */
 function checkMatch(c1, c2) {
   if (
     c1.txt === c2.txt ||
@@ -148,6 +215,10 @@ function checkMatch(c1, c2) {
   }
 }
 
+/**
+ * PICKCARD
+ * pick a random card
+ */
 function pickCard(x, y, t) {
   let indexName = int(random(colorsSize));
   let indexColor = int(random(colorsSize));
@@ -166,52 +237,109 @@ function pickCard(x, y, t) {
  * run everytime a key is pressed
  */
 function keyPressed() {
+  //PLAY STATE
   if (
-    (checkMatch(cardPlayer, cardCPU) && keyCode === RIGHT_ARROW) ||
-    (!checkMatch(cardPlayer, cardCPU) && keyCode === LEFT_ARROW)
+    gameState === "play" &&
+    (keyCode === RIGHT_ARROW || keyCode === LEFT_ARROW)
   ) {
-    score += 1;
-  } else {
-    shake += 1;
-    score -= 2;
+    if (
+      (checkMatch(cardPlayer, cardCPU) && keyCode === RIGHT_ARROW) ||
+      (!checkMatch(cardPlayer, cardCPU) && keyCode === LEFT_ARROW)
+    ) {
+      score += 1;
+    } else {
+      shake += 1;
+      score -= 2;
+      if (score < 0) {
+        score = 0;
+      }
+    }
+
+    cardCPU = pickCard(width / 2, height / 4, "cpu");
+    cardPlayer = pickCard(width / 2, height / 2 + height / 4, "player");
   }
 
-  cardCPU = pickCard(width / 2, height / 4, "cpu");
-  cardPlayer = pickCard(width / 2, height / 2 + height / 4, "player");
+  //TITLE STATE
+  if (gameState === "title" && keyCode === 32) {
+    //space
+    gameState = "play";
+  }
+
+  //SCORE STATE
+  if (gameState === "score" && keyCode === 32) {
+    //space
+    gameState = "play";
+    timer = timerInit;
+    score = 0;
+  }
 }
 
+/**
+ * TOUCHSTARTED
+ * run once when touch sreen
+ */
 function touchStarted() {
-  cardPlayer.x = touches[0].x;
-  cardPlayer.y = touches[0].y;
+  if (gameState === "play") {
+    cardPlayer.x = touches[0].x;
+    cardPlayer.y = touches[0].y;
+  }
 }
 
+/**
+ * TOUCHMOVED
+ * run while touch sreen
+ */
 function touchMoved() {
-  cardPlayer.x = touches[0].x;
-  cardPlayer.y = touches[0].y;
+  if (gameState === "play") {
+    cardPlayer.x = touches[0].x;
+    cardPlayer.y = touches[0].y;
+  }
 }
 
+/**
+ * TOUCHENDED
+ * run when release touch from sreen
+ */
 function touchEnded() {
-  if (
-    (checkMatch(cardPlayer, cardCPU) && cardPlayer.x > width / 2) ||
-    (!checkMatch(cardPlayer, cardCPU) && cardPlayer.x < width / 2)
-  ) {
-    score += 1;
-  } else {
-    score -= 2;
-    shake += 1;
+  if (gameState === "play") {
+    if (
+      (checkMatch(cardPlayer, cardCPU) && cardPlayer.x > width / 2) ||
+      (!checkMatch(cardPlayer, cardCPU) && cardPlayer.x < width / 2)
+    ) {
+      score += 1;
+    } else {
+      score -= 2;
+      shake += 1;
+      if (score < 0) {
+        score = 0;
+      }
+    }
+    cardCPU = pickCard(width / 2, height / 4, "cpu");
+    cardPlayer = pickCard(width / 2, height / 2 + height / 4, "player");
+  }
+  
+  //TITLE STATE
+  if (gameState === "title") {
+    gameState = "play";
   }
 
-  cardCPU = pickCard(width / 2, height / 4, "cpu");
-  cardPlayer = pickCard(width / 2, height / 2 + height / 4, "player");
+  //SCORE STATE
+  if (gameState === "score") {
+    gameState = "play";
+    timer = timerInit;
+    score = 0;
+  }
 }
 
+/**
+ * DOSHAKE
+ * shake the entire screen
+ */
 function doShake() {
   let shakeX = random(-16, 16);
   let shakeY = random(-16, 16);
-
   shakeX *= shake;
   shakeY *= shake;
-
   translate(shakeX, shakeY);
   shake = shake * 0.95;
   if (shake < 0.05) {
