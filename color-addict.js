@@ -425,6 +425,7 @@ function touchEnded() {
     gameState = "play";
     timer = timerInit;
     score = 0;
+    resetCards();
   }
 }
 
