@@ -23,6 +23,7 @@ var timer = timerInit;
 var cardCPU;
 var cardPlayer;
 var gameState = "title";
+var particles = [];
 
 /**
  * SETUP
@@ -32,8 +33,7 @@ function setup() {
   createCanvas(380, 567);
 
   // init cards
-  cardCPU = pickCard(width / 2, height / 4 + 15, "cpu");
-  cardPlayer = pickCard(width / 2, height / 2 + height / 4, "player");
+  resetCards();
 
   // init arrows
   arrowLeft = new Arrow(
@@ -116,6 +116,9 @@ function draw() {
     }
     text("00:" + timerDisplay, width - 10, 17);
 
+    //particles
+    shootParticules();
+
     //cards
     cardPlayer.drawCard();
     cardCPU.drawCard();
@@ -186,17 +189,54 @@ class Card {
   }
   drawCard() {
     fill(255);
-    rectMode(CENTER);
-    rect(this.x, this.y, 140, 200, 10);
-    textAlign(CENTER, CENTER);
     if (this.type === "cpu") {
       textSize(40);
+      noFill();
     } else {
       textSize(30);
     }
+    rectMode(CENTER);
+    rect(this.x, this.y, 140, 200, 10);
+    textAlign(CENTER, CENTER);
     textStyle(BOLD);
     fill(this.color[0], this.color[1], this.color[2]);
     text(this.txt, this.x, this.y);
+  }
+}
+
+/**
+ * PARTICLE
+ * particle class
+ */
+class Particle {
+  constructor(x, y, angleMin, angleMax, dirX, dirY) {
+    this.x = x;
+    this.y = y;
+    this.speed = random(1, 3);
+    this.r = random(1, 7);
+    this.age = 0;
+    this.angle = random(angleMin, angleMax);
+    this.maxAge = 40;
+    this.age = random(0, this.maxAge);
+    this.dirX = dirX;
+    this.dirY = dirY;
+  }
+  drawParticle() {
+    this.age -= 1;
+    let alpha = map(this.age, 0, this.maxAge / 2, 0, 255);
+    fill(random(255), random(255), random(255), alpha);
+    ellipse(this.x, this.y, this.r);
+  }
+  moveParticle() {
+    angleMode(DEGREES);
+    if (this.dirX === 0) {
+      this.x += this.speed * tan(this.angle);
+      this.y += this.speed * this.dirY;
+    }
+    if (this.dirY === 0) {
+      this.x += this.speed * this.dirX;
+      this.y += this.speed / tan(this.angle);
+    }
   }
 }
 
@@ -233,6 +273,68 @@ function pickCard(x, y, t) {
 }
 
 /**
+ * RESETCARDS
+ * reset cards on the board
+ */
+function resetCards() {
+  cardCPU = pickCard(width / 2, height / 4, "cpu");
+  cardPlayer = pickCard(width / 2, height / 2 + height / 4, "player");
+  addParticules();
+}
+
+/**
+ * SHOOTPARTICULES
+ * shoot particules from the arrqy
+ */
+function shootParticules() {
+  for (let i = 0; i < particles.length; i++) {
+    particles[i].drawParticle();
+    particles[i].moveParticle();
+  }
+  for (let i = particles.length - 1; i >= 0; i--) {
+    if (particles[i].age <= 0) {
+      particles.splice(i, 1);
+    }
+  }
+}
+
+/**
+ * ADD PARTICULES
+ * ass particules to the array
+ */
+function addParticules() {
+  // init particles
+  let cardBottomY = height / 2 + height / 4 + 70;
+  let cardTopY = height / 2 + height / 4 - 70;
+  let cardLeftX = width / 2 - 50;
+  let cardRightX = width / 2 + 50;
+  //bottom
+  for (let i = 0; i < 200; i++) {
+    particles.push(
+      new Particle(random(cardLeftX, cardRightX), cardBottomY, -45, 45, 0, 1)
+    );
+  }
+  //top
+  for (let i = 0; i < 200; i++) {
+    particles.push(
+      new Particle(random(cardLeftX, cardRightX), cardTopY, -45, 45, 0, -1)
+    );
+  }
+  //right
+  for (let i = 0; i < 200; i++) {
+    particles.push(
+      new Particle(cardRightX, random(cardTopY, cardBottomY), 45, 135, 1, 0)
+    );
+  }
+  //left
+  for (let i = 0; i < 200; i++) {
+    particles.push(
+      new Particle(cardLeftX, random(cardTopY, cardBottomY), 45, 135, -1, 0)
+    );
+  }
+}
+
+/**
  * KEYPRESSED
  * run everytime a key is pressed
  */
@@ -255,22 +357,17 @@ function keyPressed() {
       }
     }
 
-    cardCPU = pickCard(width / 2, height / 4, "cpu");
-    cardPlayer = pickCard(width / 2, height / 2 + height / 4, "player");
+    resetCards();
   }
 
-  //TITLE STATE
-  if (gameState === "title" && keyCode === 32) {
-    //space
+  //SPACE
+  if (keyCode === 32) {
     gameState = "play";
-  }
 
-  //SCORE STATE
-  if (gameState === "score" && keyCode === 32) {
-    //space
-    gameState = "play";
     timer = timerInit;
     score = 0;
+
+    resetCards();
   }
 }
 
@@ -314,10 +411,10 @@ function touchEnded() {
         score = 0;
       }
     }
-    cardCPU = pickCard(width / 2, height / 4, "cpu");
-    cardPlayer = pickCard(width / 2, height / 2 + height / 4, "player");
+
+    resetCards();
   }
-  
+
   //TITLE STATE
   if (gameState === "title") {
     gameState = "play";
@@ -341,7 +438,7 @@ function doShake() {
   shakeX *= shake;
   shakeY *= shake;
   translate(shakeX, shakeY);
-  shake = shake * 0.95;
+  shake = shake * 0.91;
   if (shake < 0.05) {
     shake = 0;
   }
